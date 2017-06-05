@@ -61,15 +61,14 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
     def check(self):
 
         if self.check_static:
-            print("HUGUES: go through check_static")
-            if not self.is_valid_cl_launcher_test_case(self.test_case):
-                raise base.InvalidTestCaseError("cl_launcher")
-
-            print("HUGUES: done")
-            return False
+            # No cl_launcher related thing for PPCG
+            # if not self.is_valid_cl_launcher_test_case(self.test_case):
+            #     raise base.InvalidTestCaseError("cl_launcher")
 
             if not self.is_statically_valid(self.test_case, self.timeout):
                 raise base.InvalidTestCaseError("static")
+
+        print("HUGUES: done with static checks")
 
         if self.use_oracle:
             # Implicitly checks if test case is valid in Oclgrind

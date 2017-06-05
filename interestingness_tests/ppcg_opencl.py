@@ -3,6 +3,7 @@ import os
 import platform
 import re
 import subprocess
+import sys
 
 class OpenCLInterestingnessTest(base.InterestingnessTest):
     @classmethod
@@ -72,8 +73,18 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
 
         cmd.append(test_case)
 
+        print("HUGUES CLANG COMMAND:")
+        for i in cmd:
+            sys.stdout.write("{} ".format(i))
+        sys.stdout.write("\n")
+        print("HUGUES END CLANG COMMAND")
+
         try:
-            return subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ret =  subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            #print("HUGUES: stdout: {}".format(ret.stdout))
+            #print("HUGUES: stderr: {}".format(ret.stderr))
+            return ret
+
         except subprocess.TimeoutExpired:
             raise base.TestTimeoutError("clang")
         except subprocess.SubprocessError:
@@ -226,14 +237,17 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         return True
 
     def is_statically_valid(self, test_case, timeout):
+        print("HUGUES: =================== ast")
         if not self.is_valid_ast(test_case, timeout):
             return False
 
         # Run static analysis of the program
         # Better support for uninitialised values
+        print("HUGUES: =================== cland")
         if not self.is_valid_clang(test_case, timeout):
             return False
 
+        print("HUGUES: =================== csa")
         if not self.is_valid_csa(test_case, timeout):
             return False
 

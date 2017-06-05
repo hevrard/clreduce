@@ -92,8 +92,10 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
         with open("proc.stderr", 'w') as f:
             f.write(proc.stderr)
 
+        numdiff = os.getenv("NUMDIFF", "numdiff")
+
         cmd = [
-            "numdiff",
+            numdiff,
             "--absolute-tolerance=1e-2",
             "oracle.stderr",
             "proc.stderr"

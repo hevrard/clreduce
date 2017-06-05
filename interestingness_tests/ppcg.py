@@ -2,11 +2,11 @@
 
 from enum import Enum
 from interestingness_tests import base
-from interestingness_tests import opencl
+from interestingness_tests import ppcg_opencl
 import os
 import sys
 
-class PPCGInterestingnessTest(opencl.OpenCLInterestingnessTest):
+class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
     class OptimisationLevel(Enum):
         unoptimised = "unoptimised"
         optimised = "optimised"
@@ -60,12 +60,13 @@ class PPCGInterestingnessTest(opencl.OpenCLInterestingnessTest):
 
     def check(self):
 
-        print("HUGUES: ok")
-        return False
-
         if self.check_static:
+            print("HUGUES: go through check_static")
             if not self.is_valid_cl_launcher_test_case(self.test_case):
                 raise base.InvalidTestCaseError("cl_launcher")
+
+            print("HUGUES: done")
+            return False
 
             if not self.is_statically_valid(self.test_case, self.timeout):
                 raise base.InvalidTestCaseError("static")

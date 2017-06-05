@@ -59,7 +59,7 @@ def get_test_script_file(test_str):
 
     if test_str == "wrong-code-bug":
         return interestingness_tests.wrong_code_bug.__file__
-    elif test_str == "wrong-code-bug":
+    elif test_str == "ppcg":
         return interestingness_tests.ppcg.__file__
     else:
         print("Unknown interestingness test")

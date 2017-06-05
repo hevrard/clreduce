@@ -100,7 +100,7 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         except base.TestTimeoutError:
             raise base.TestTimeoutError("clang static analyzer")
 
-    def _run_oclgrind(self, test_case, timeout, optimised):
+    def _run_oclgrind(self, test_case, timeout):
         cmd = ["oclgrind"]
         cmd.extend(["-Wall", "--uninitialized", "--arithmetic-exceptions", "--data-races", "--uniform-writes", "--stop-errors", "1"])
 
@@ -115,7 +115,9 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         print("HUGUES: end oclgrind command")
 
         try:
-            ret = subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            myenv = os.environ.copy()
+            myenv["OPENCL_TARGET_DEVICE"] = ""
+            ret = subprocess.run(cmd, env=myenv, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print("HUGUES: stdout: {}".format(ret.stdout))
             print("HUGUES: stderr: {}".format(ret.stderr))
             return ret
@@ -125,17 +127,20 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         except subprocess.SubprocessError:
             return None
 
-    def _run_cl_launcher(self, test_case, platform, device, timeout, optimised):
-        cmd = [self.cl_launcher]
-        cmd.extend(["-p", str(platform), "-d", str(device), "-f", test_case])
+    def _run_ppcg_host(self, test_case, platform, device, timeout):
 
-        if not optimised:
-            cmd.append("---disable_opts")
+        execname = test_case.replace("_kernel.cl", "")
+
+        cmd = ["./" + execname]
 
         try:
-            return subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ret = subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("HUGUES: stdout: {}".format(ret.stdout))
+            print("HUGUES: stderr: {}".format(ret.stderr))
+            return ret
+
         except subprocess.TimeoutExpired:
-            raise base.TestTimeoutError("cl_launcher")
+            raise base.TestTimeoutError("ppcg_host")
         except subprocess.SubprocessError:
             return None
 
@@ -246,17 +251,14 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         return True
 
     def is_statically_valid(self, test_case, timeout):
-        print("HUGUES: =================== ast")
         if not self.is_valid_ast(test_case, timeout):
             return False
 
         # Run static analysis of the program
         # Better support for uninitialised values
-        print("HUGUES: =================== cland")
         if not self.is_valid_clang(test_case, timeout):
             return False
 
-        print("HUGUES: =================== csa")
         if not self.is_valid_csa(test_case, timeout):
             return False
 
@@ -272,21 +274,12 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         return True
 
     def get_oracle_result(self, test_case, timeout):
-        proc_opt = self._run_oclgrind(test_case, timeout, optimised=True)
+        proc_opt = self._run_oclgrind(test_case, timeout)
 
         if proc_opt is None or proc_opt.returncode != 0:
             return None
 
-        proc_unopt = self._run_oclgrind(test_case, timeout, optimised=False)
-
-        if proc_unopt is None or proc_unopt.returncode != 0:
-            return None
-
-        # Check for error in Oclgrind/Clang
-        if proc_opt.stdout != proc_unopt.stdout:
-            return None
-
-        return proc_opt.stdout
+        return proc_opt
 
     def is_valid_cl_launcher(self, test_case, platform, device, timeout, optimised):
         proc = self._run_cl_launcher(test_case, platform, device, timeout, optimised)

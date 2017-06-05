@@ -68,20 +68,34 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
             if not self.is_statically_valid(self.test_case, self.timeout):
                 raise base.InvalidTestCaseError("static")
 
-        print("HUGUES: done with static checks")
-
         # Always use OCLGring as oracle
         oracle = self.get_oracle_result(self.test_case, self.timeout)
 
-        print("HUGUES: work in progress")
-        return False
+        if oracle is None:
+            raise base.InvalidTestCaseError("oracle")
+
+        print("HUGUES: done with OCLGRIND, start PPCG")
+
+        proc = self._run_ppcg_host(self.test_case, self.platform, self.device, self.timeout)
+
+        if proc is None or proc.returncode != 0:
+            raise base.InvalidTestCaseError("ppcg_host")
+
+        if proc.stdout != oracle.stdout:
+            print("HUGUES: different stdout")
+
+        if proc.stderr != oracle.stderr:
+            print("HUGUES: different stderr")
+
+        # Compare proc and oracle output
+        return (proc.stdout != oracle.stdout) or (proc.stderr != oracle.stderr)
+
+        # print("HUGUES: work in progress")
+        # return False
 
         # if self.use_oracle:
         #     # Implicitly checks if test case is valid in Oclgrind
         #     oracle = self.get_oracle_result(self.test_case, self.timeout)
-
-        #     if oracle is None:
-        #         raise base.InvalidTestCaseError("oracle")
 
         #     if self.optimisation_level is self.OptimisationLevel.optimised:
         #         proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)

@@ -106,7 +106,8 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
 
         # PPCG: recreate executable name from test_case
         execname = test_case.replace("_kernel.cl", "")
-        cmd.append("./" + execname)
+        #execname = os.getenv("CREDUCE_TEST_CASE_HOSTEXEC")
+        cmd.append(execname)
 
         print("HUGUES: oclgrind command:")
         for i in cmd:
@@ -130,8 +131,9 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
     def _run_ppcg_host(self, test_case, platform, device, timeout):
 
         execname = test_case.replace("_kernel.cl", "")
+        #execname = os.getenv("CREDUCE_TEST_CASE_HOSTEXEC")
 
-        cmd = ["./" + execname]
+        cmd = [execname]
 
         try:
             ret = subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

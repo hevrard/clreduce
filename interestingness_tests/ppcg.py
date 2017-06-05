@@ -5,6 +5,7 @@ from interestingness_tests import base
 from interestingness_tests import ppcg_opencl
 import os
 import sys
+import subprocess
 
 class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
     class OptimisationLevel(Enum):
@@ -84,11 +85,31 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
         if proc.stdout != oracle.stdout:
             print("HUGUES: different stdout")
 
-        if proc.stderr != oracle.stderr:
-            print("HUGUES: different stderr")
+        # Compare using numdiff
+        with open("oracle.stderr", 'w') as f:
+            f.write(oracle.stderr)
+
+        with open("proc.stderr", 'w') as f:
+            f.write(proc.stderr)
+
+        cmd = [
+            "numdiff",
+            "--absolute-tolerance=1e-2",
+            "oracle.stderr",
+            "proc.stderr"
+        ]
+
+        try:
+            numdiff_ret = subprocess.run(cmd, universal_newlines=True, timeout=self.timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except subprocess.TimeoutExpired:
+            raise base.TestTimeoutError("numdiff")
+        # FIXME!!
+        except subprocess.SubprocessError:
+            print("FIXME: subprocess error with numdiff")
+            return False
 
         # Compare proc and oracle output
-        return (proc.stdout != oracle.stdout) or (proc.stderr != oracle.stderr)
+        return (proc.stdout != oracle.stdout) or (numdiff_ret.returncode != 0)
 
         # print("HUGUES: work in progress")
         # return False

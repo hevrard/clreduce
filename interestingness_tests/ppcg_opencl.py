@@ -73,17 +73,8 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
 
         cmd.append(test_case)
 
-        print("HUGUES CLANG COMMAND:")
-        for i in cmd:
-            sys.stdout.write("{} ".format(i))
-        sys.stdout.write("\n")
-        print("HUGUES END CLANG COMMAND")
-
         try:
-            ret = subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #print("HUGUES: stdout: {}".format(ret.stdout))
-            #print("HUGUES: stderr: {}".format(ret.stderr))
-            return ret
+            return subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except subprocess.TimeoutExpired:
             raise base.TestTimeoutError("clang")
@@ -109,19 +100,11 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         #execname = os.getenv("CREDUCE_TEST_CASE_HOSTEXEC")
         cmd.append(execname)
 
-        print("HUGUES: oclgrind command:")
-        for i in cmd:
-            sys.stdout.write("{} ".format(i))
-        sys.stdout.write("\n")
-        print("HUGUES: end oclgrind command")
-
         try:
+            # unset OPENCL_TARGET_DEVICE to give way to oclgrind
             myenv = os.environ.copy()
             myenv["OPENCL_TARGET_DEVICE"] = ""
-            ret = subprocess.run(cmd, env=myenv, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("HUGUES: stdout: {}".format(ret.stdout))
-            print("HUGUES: stderr: {}".format(ret.stderr))
-            return ret
+            return subprocess.run(cmd, env=myenv, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except subprocess.TimeoutExpired:
             raise base.TestTimeoutError("oclgrind")
@@ -131,15 +114,11 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
     def _run_ppcg_host(self, test_case, platform, device, timeout):
 
         execname = test_case.replace("_kernel.cl", "")
-        #execname = os.getenv("CREDUCE_TEST_CASE_HOSTEXEC")
 
         cmd = [execname]
 
         try:
-            ret = subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("HUGUES: stdout: {}".format(ret.stdout))
-            print("HUGUES: stderr: {}".format(ret.stderr))
-            return ret
+            return subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except subprocess.TimeoutExpired:
             raise base.TestTimeoutError("ppcg_host")
@@ -222,35 +201,6 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
             return True
 
         return False
-
-    def is_valid_cl_launcher_test_case(self, test_case):
-        print("HUGUES: it's ppcg_opencl")
-        return True
-
-        with open(test_case, "r") as test_file:
-            content = test_file.read()
-
-        # Make sure comment with dimensions is preserved
-        m = re.match(r"//.* -g [0-9]+,[0-9]+,[0-9]+ -l [0-9]+,[0-9]+,[0-9]+", content)
-
-        if m is None:
-            return False
-
-        # Early bailout if we trust Oclgrind to catch all problems
-        if not self.conservative:
-            return True
-
-        # Access to result only with get_linear_global_id()
-        if not self.is_valid_result_access(test_case):
-            return False
-
-        # Must not change get_linear_global_id
-        m = re.search(r"return\s*\(\s*get_global_id\s*\(\s*2\s*\)\s*\*\s*get_global_size\s*\(\s*1\s*\)\s*\+\s*get_global_id\s*\(\s*1\s*\)\s*\)\s*\*\s*get_global_size\s*\(\s*0\s*\)\s*\+\s*get_global_id\s*\(\s*0\s*\)\s*;", content)
-
-        if m is None:
-            return False
-
-        return True
 
     def is_statically_valid(self, test_case, timeout):
         if not self.is_valid_ast(test_case, timeout):

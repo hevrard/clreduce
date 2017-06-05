@@ -62,10 +62,6 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
     def check(self):
 
         if self.check_static:
-            # No cl_launcher related thing for PPCG
-            # if not self.is_valid_cl_launcher_test_case(self.test_case):
-            #     raise base.InvalidTestCaseError("cl_launcher")
-
             if not self.is_statically_valid(self.test_case, self.timeout):
                 raise base.InvalidTestCaseError("static")
 
@@ -75,15 +71,13 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
         if oracle is None:
             raise base.InvalidTestCaseError("oracle")
 
-        print("HUGUES: done with OCLGRIND, start PPCG")
-
         proc = self._run_ppcg_host(self.test_case, self.platform, self.device, self.timeout)
 
         if proc is None or proc.returncode != 0:
             raise base.InvalidTestCaseError("ppcg_host")
 
-        if proc.stdout != oracle.stdout:
-            print("HUGUES: different stdout")
+        # if proc.stdout != oracle.stdout:
+        #     print("HUGUES: different stdout")
 
         # Compare using numdiff
         with open("oracle.stderr", 'w') as f:
@@ -112,65 +106,6 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
 
         # Compare proc and oracle output
         return (proc.stdout != oracle.stdout) or (numdiff_ret.returncode != 0)
-
-        # print("HUGUES: work in progress")
-        # return False
-
-        # if self.use_oracle:
-        #     # Implicitly checks if test case is valid in Oclgrind
-        #     oracle = self.get_oracle_result(self.test_case, self.timeout)
-
-        #     if self.optimisation_level is self.OptimisationLevel.optimised:
-        #         proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
-
-        #         if proc_opt is None or proc_opt.returncode != 0:
-        #             raise base.InvalidTestCaseError("optimised")
-
-        #         return proc_opt.stdout != oracle
-        #     elif self.optimisation_level is self.OptimisationLevel.unoptimised:
-        #         proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
-
-        #         if proc_unopt is None or proc_unopt.returncode != 0:
-        #             raise base.InvalidTestCaseError("unoptimised")
-
-        #         return proc_unopt.stdout != oracle
-        #     elif self.optimisation_level is self.OptimisationLevel.either:
-        #         proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
-
-        #         if proc_opt is None or proc_opt.returncode != 0:
-        #             raise base.InvalidTestCaseError("optimised")
-
-        #         if proc_opt.stdout != oracle:
-        #             return True
-
-        #         proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
-
-        #         if proc_unopt is None or proc_unopt.returncode != 0:
-        #             raise base.InvalidTestCaseError("unoptimised")
-
-        #         if proc_unopt.stdout != oracle:
-        #             return True
-
-        #         return False
-        #     elif self.optimisation_level is self.OptimisationLevel.all:
-        #         proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
-
-        #         if proc_opt is None or proc_opt.returncode != 0:
-        #             raise base.InvalidTestCaseError("optimised")
-
-        #         if proc_opt.stdout == oracle:
-        #             return False
-
-        #         proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
-
-        #         if proc_unopt is None or proc_unopt.returncode != 0:
-        #             raise base.InvalidTestCaseError("unoptimised")
-
-        #         if proc_unopt.stdout == oracle:
-        #             return False
-
-        #         return True
-
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

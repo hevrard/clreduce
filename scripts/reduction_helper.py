@@ -305,10 +305,6 @@ if __name__ == "__main__":
                 print("-> different output", end=" ", flush=True, file=log_file)
 
         if args.reduce:
-            print("HUGUES: enter args.reduce, test case name is {}".format(test_case_name))
-            print("HUGUES: enter args.reduce, test case path is {}".format(test_case_path))
-            print("HUGUES pwd: {}".format(os.getcwd()))
-
             # shutil.copy(test_case_path, "{}.red.cl".format(test_case_name))
             # test_case_path = os.path.abspath("{}.red.cl".format(test_case_name))
 
@@ -318,7 +314,6 @@ if __name__ == "__main__":
             host_exec_dir = os.path.dirname(test_case_path)
             shutil.copy(test_case_path, "{}.cl".format(test_case_name))
             test_case_path = os.path.abspath("{}.cl".format(test_case_name))
-            print("HUGUES: new test case path is {}".format(test_case_path))
 
             reduction_env = os.environ
             reduction_env["CREDUCE_TEST_CASE"] = os.path.basename(test_case_path)
@@ -358,11 +353,6 @@ if __name__ == "__main__":
             cmd.append(test_wrapper)
             cmd.append(test_case_path)
 
-            print("HUGUES: creduce command")
-            for i in cmd:
-                sys.stdout.write(i + " ")
-            print("")
-
             with open("{}.log".format(test_case_name), mode="w") as log:
                 try:
                     stop = False
@@ -376,11 +366,11 @@ if __name__ == "__main__":
                 finally:
                     log.write("\nRuntime: {} seconds\n".format(round(time.monotonic() - start, 0)))
 
-                    # if size_before == os.path.getsize(test_case_path):
-                    #     try:
-                    #         os.remove(test_case_path)
-                    #     except OSError:
-                    #         pass
+                    if size_before == os.path.getsize(test_case_path):
+                        try:
+                            os.remove(test_case_path)
+                        except OSError:
+                            pass
 
             if stop:
                 continue

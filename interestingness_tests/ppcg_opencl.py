@@ -80,7 +80,7 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         print("HUGUES END CLANG COMMAND")
 
         try:
-            ret =  subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ret = subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             #print("HUGUES: stdout: {}".format(ret.stdout))
             #print("HUGUES: stderr: {}".format(ret.stderr))
             return ret
@@ -103,14 +103,23 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
     def _run_oclgrind(self, test_case, timeout, optimised):
         cmd = ["oclgrind"]
         cmd.extend(["-Wall", "--uninitialized", "--arithmetic-exceptions", "--data-races", "--uniform-writes", "--stop-errors", "1"])
-        cmd.append(self.cl_launcher)
-        cmd.extend(["-p", "0", "-d", "0", "-f", test_case])
 
-        if not optimised:
-            cmd.append("---disable_opts")
+        # PPCG: recreate executable name from test_case
+        execname = test_case.replace("_kernel.cl", "")
+        cmd.append("./" + execname)
+
+        print("HUGUES: oclgrind command:")
+        for i in cmd:
+            sys.stdout.write("{} ".format(i))
+        sys.stdout.write("\n")
+        print("HUGUES: end oclgrind command")
 
         try:
-            return subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ret = subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("HUGUES: stdout: {}".format(ret.stdout))
+            print("HUGUES: stderr: {}".format(ret.stderr))
+            return ret
+
         except subprocess.TimeoutExpired:
             raise base.TestTimeoutError("oclgrind")
         except subprocess.SubprocessError:

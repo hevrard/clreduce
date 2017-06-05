@@ -263,11 +263,16 @@ if __name__ == "__main__":
         if args.check:
             test_class = get_test_class(args.test)
             options = test_class.get_test_options(os.environ)
-
             tmp_dir = tempfile.mkdtemp()
             out_dir = os.getcwd()
             os.chdir(tmp_dir)
             test_case_file = os.path.basename(test_case_path)
+
+            # PPCG hack: copy the host binary, which is our
+            # "cl_launcher" equivalent to the tmp dir
+            execname = test_case_file.replace("_kernel.cl", "")
+            shutil.copy2(os.path.join(os.path.dirname(test_case_path), execname), execname)
+
             shutil.copy(test_case_path, test_case_file)
             test = test_class([test_case_file], options)
 

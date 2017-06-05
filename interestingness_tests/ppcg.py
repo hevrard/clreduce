@@ -70,80 +70,70 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
 
         print("HUGUES: done with static checks")
 
-        if self.use_oracle:
-            # Implicitly checks if test case is valid in Oclgrind
-            oracle = self.get_oracle_result(self.test_case, self.timeout)
+        # Always use OCLGring as oracle
+        oracle = self.get_oracle_result(self.test_case, self.timeout)
 
-            if oracle is None:
-                raise base.InvalidTestCaseError("oracle")
+        print("HUGUES: work in progress")
+        return False
 
-            if self.optimisation_level is self.OptimisationLevel.optimised:
-                proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
+        # if self.use_oracle:
+        #     # Implicitly checks if test case is valid in Oclgrind
+        #     oracle = self.get_oracle_result(self.test_case, self.timeout)
 
-                if proc_opt is None or proc_opt.returncode != 0:
-                    raise base.InvalidTestCaseError("optimised")
+        #     if oracle is None:
+        #         raise base.InvalidTestCaseError("oracle")
 
-                return proc_opt.stdout != oracle
-            elif self.optimisation_level is self.OptimisationLevel.unoptimised:
-                proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
+        #     if self.optimisation_level is self.OptimisationLevel.optimised:
+        #         proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
 
-                if proc_unopt is None or proc_unopt.returncode != 0:
-                    raise base.InvalidTestCaseError("unoptimised")
+        #         if proc_opt is None or proc_opt.returncode != 0:
+        #             raise base.InvalidTestCaseError("optimised")
 
-                return proc_unopt.stdout != oracle
-            elif self.optimisation_level is self.OptimisationLevel.either:
-                proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
+        #         return proc_opt.stdout != oracle
+        #     elif self.optimisation_level is self.OptimisationLevel.unoptimised:
+        #         proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
 
-                if proc_opt is None or proc_opt.returncode != 0:
-                    raise base.InvalidTestCaseError("optimised")
+        #         if proc_unopt is None or proc_unopt.returncode != 0:
+        #             raise base.InvalidTestCaseError("unoptimised")
 
-                if proc_opt.stdout != oracle:
-                    return True
+        #         return proc_unopt.stdout != oracle
+        #     elif self.optimisation_level is self.OptimisationLevel.either:
+        #         proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
 
-                proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
+        #         if proc_opt is None or proc_opt.returncode != 0:
+        #             raise base.InvalidTestCaseError("optimised")
 
-                if proc_unopt is None or proc_unopt.returncode != 0:
-                    raise base.InvalidTestCaseError("unoptimised")
+        #         if proc_opt.stdout != oracle:
+        #             return True
 
-                if proc_unopt.stdout != oracle:
-                    return True
+        #         proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
 
-                return False
-            elif self.optimisation_level is self.OptimisationLevel.all:
-                proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
+        #         if proc_unopt is None or proc_unopt.returncode != 0:
+        #             raise base.InvalidTestCaseError("unoptimised")
 
-                if proc_opt is None or proc_opt.returncode != 0:
-                    raise base.InvalidTestCaseError("optimised")
+        #         if proc_unopt.stdout != oracle:
+        #             return True
 
-                if proc_opt.stdout == oracle:
-                    return False
+        #         return False
+        #     elif self.optimisation_level is self.OptimisationLevel.all:
+        #         proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
 
-                proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
+        #         if proc_opt is None or proc_opt.returncode != 0:
+        #             raise base.InvalidTestCaseError("optimised")
 
-                if proc_unopt is None or proc_unopt.returncode != 0:
-                    raise base.InvalidTestCaseError("unoptimised")
+        #         if proc_opt.stdout == oracle:
+        #             return False
 
-                if proc_unopt.stdout == oracle:
-                    return False
+        #         proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
 
-                return True
-        else:
-            #FIXME: Need to run both?
-            if (not self.is_valid_oclgrind(self.test_case, self.timeout, optimised=True) or
-                not self.is_valid_oclgrind(self.test_case, self.timeout, optimised=False)):
-                return False
+        #         if proc_unopt is None or proc_unopt.returncode != 0:
+        #             raise base.InvalidTestCaseError("unoptimised")
 
-            proc_opt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=True)
+        #         if proc_unopt.stdout == oracle:
+        #             return False
 
-            if proc_opt is None or proc_opt.returncode != 0:
-                raise base.InvalidTestCaseError("optimised")
+        #         return True
 
-            proc_unopt = self._run_cl_launcher(self.test_case, self.platform, self.device, self.timeout, optimised=False)
-
-            if proc_unopt is None or proc_unopt.returncode != 0:
-                raise base.InvalidTestCaseError("unoptimised")
-
-            return proc_opt.stdout != proc_unopt.stdout
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

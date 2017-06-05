@@ -46,6 +46,8 @@ def get_test_class(test_str):
 
     if test_str == "wrong-code-bug":
         return interestingness_tests.WrongCodeBugOpenCLInterestingnessTest
+    elif test_str == "ppcg":
+        return interestingness_tests.PPCGInterestingnessTest
     else:
         print("Unknown interestingness test")
         sys.exit(1)
@@ -57,6 +59,8 @@ def get_test_script_file(test_str):
 
     if test_str == "wrong-code-bug":
         return interestingness_tests.wrong_code_bug.__file__
+    elif test_str == "wrong-code-bug":
+        return interestingness_tests.ppcg.__file__
     else:
         print("Unknown interestingness test")
         sys.exit(1)
@@ -83,7 +87,7 @@ if __name__ == "__main__":
     reduceGroup.add_argument("--reduce-work-sizes-unchecked", dest="reduce_work_sizes", action="store_const", const=2, help="Reduce dimensions of the test cases (unchecked)")
 
     parser.add_argument("--reduce", action="store_true", help="Start reduction of the test cases")
-    parser.add_argument("--test", action="store", choices=["wrong-code-bug"], default=None, help="Interestingness test that should be used")
+    parser.add_argument("--test", action="store", choices=["wrong-code-bug", "ppcg"], default=None, help="Interestingness test that should be used")
     parser.add_argument("--modes", nargs="+", action="store", choices=["atomic_reductions", "atomics", "barriers", "divergence", "fake_divergence", "group_divergence", "inter_thread_comm", "vectors"], help="CLsmith modes")
     parser.add_argument("--output", help="Output directory")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")

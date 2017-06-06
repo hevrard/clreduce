@@ -262,16 +262,13 @@ if __name__ == "__main__":
         # Check if test case is interesting
         if args.check:
             test_class = get_test_class(args.test)
-            options = test_class.get_test_options(os.environ)
+            myenv = os.environ
+            myenv['CREDUCE_PPCG_HOST_EXEC_DIR'] = os.path.dirname(test_case_path)
+            options = test_class.get_test_options(myenv)
             tmp_dir = tempfile.mkdtemp()
             out_dir = os.getcwd()
             os.chdir(tmp_dir)
             test_case_file = os.path.basename(test_case_path)
-
-            # PPCG hack: copy the host binary, which is our
-            # "cl_launcher" equivalent to the tmp dir
-            execname = test_case_file.replace("_kernel.cl", "")
-            shutil.copy2(os.path.join(os.path.dirname(test_case_path), execname), execname)
 
             shutil.copy(test_case_path, test_case_file)
             test = test_class([test_case_file], options)
@@ -305,20 +302,13 @@ if __name__ == "__main__":
                 print("-> different output", end=" ", flush=True, file=log_file)
 
         if args.reduce:
-            # shutil.copy(test_case_path, "{}.red.cl".format(test_case_name))
-            # test_case_path = os.path.abspath("{}.red.cl".format(test_case_name))
-
-            # execpath = test_case_path.replace("_kernel.cl", "")
-            # shutil.copy(execpath, os.path.basename(execpath))
-
-            host_exec_dir = os.path.dirname(test_case_path)
             shutil.copy(test_case_path, "{}.cl".format(test_case_name))
+            host_exec_dir = os.path.dirname(test_case_path)
             test_case_path = os.path.abspath("{}.cl".format(test_case_name))
 
             reduction_env = os.environ
+            reduction_env['CREDUCE_PPCG_HOST_EXEC_DIR'] = host_exec_dir
             reduction_env["CREDUCE_TEST_CASE"] = os.path.basename(test_case_path)
-            reduction_env["PATH"] += ":" + host_exec_dir
-            # reduction_env["CREDUCE_TEST_CASE_HOSTEXEC"] = execpath
 
             test_script_file = get_test_script_file(args.test)
 
@@ -359,7 +349,6 @@ if __name__ == "__main__":
                     size_before = os.path.getsize(test_case_path)
                     start = time.monotonic()
                     proc = subprocess.run(cmd, env=reduction_env, stdout=log, stderr=subprocess.STDOUT, universal_newlines=True)
-
                 except subprocess.SubprocessError:
                     print("-> reduction aborted", file=log_file)
                     stop = True

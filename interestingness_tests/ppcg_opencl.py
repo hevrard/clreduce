@@ -17,11 +17,14 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         options["device"] = env.get("CREDUCE_TEST_DEVICE")
         options["timeout"] = env.get("CREDUCE_TEST_TIMEOUT")
         options["conservative"] = env.get("CREDUCE_TEST_CONSERVATIVE")
+        options["host_exec_dir"] = env.get("CREDUCE_PPCG_HOST_EXEC_DIR")
 
         return options
 
     def __init__(self, test_cases, options):
         super().__init__(test_cases, options)
+
+        self.host_exec_dir = options["host_exec_dir"]
 
         if len(self.test_cases) > 0:
             self.test_case = self.test_cases[0]
@@ -97,13 +100,14 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
 
         # PPCG: recreate executable name from test_case
         execname = test_case.replace("_kernel.cl", "")
-        #execname = os.getenv("CREDUCE_TEST_CASE_HOSTEXEC")
         cmd.append(execname)
 
+        # unset OPENCL_TARGET_DEVICE to give way to oclgrind
+        myenv = os.environ.copy()
+        myenv["OPENCL_TARGET_DEVICE"] = ""
+        myenv["PATH"] += ":" + self.host_exec_dir
+
         try:
-            # unset OPENCL_TARGET_DEVICE to give way to oclgrind
-            myenv = os.environ.copy()
-            myenv["OPENCL_TARGET_DEVICE"] = ""
             return subprocess.run(cmd, env=myenv, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except subprocess.TimeoutExpired:
@@ -117,8 +121,12 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
 
         cmd = [execname]
 
+        myenv = os.environ.copy()
+        myenv["PATH"] += ":" + self.host_exec_dir
+
         try:
-            return subprocess.run(cmd, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            return subprocess.run(cmd, env=myenv, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except subprocess.TimeoutExpired:
             raise base.TestTimeoutError("ppcg_host")

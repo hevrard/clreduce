@@ -6,6 +6,7 @@ from interestingness_tests import ppcg_opencl
 import os
 import sys
 import subprocess
+import itertools
 
 class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
     class OptimisationLevel(Enum):
@@ -81,7 +82,10 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
 
         # Compare using numdiff
         with open("oracle.stderr", 'w') as f:
-            f.write(oracle.stderr)
+            # postprocess polybench output to remove lines emitted by oclgrind
+            oracle_processed = "\n".join(list(itertools.dropwhile(lambda s : s != "==BEGIN DUMP_ARRAYS==", oracle.stderr.split("\n"))))
+            f.write(oracle_processed)
+            #f.write(oracle.stderr)
 
         with open("proc.stderr", 'w') as f:
             f.write(proc.stderr)

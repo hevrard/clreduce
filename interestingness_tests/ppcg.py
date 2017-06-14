@@ -62,15 +62,24 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
 
     def check(self):
 
+        # print("Hugues: start check")
+
         if self.check_static:
             if not self.is_statically_valid(self.test_case, self.timeout):
                 raise base.InvalidTestCaseError("static")
 
+        # print("Hugues: start get_oracle_result")
+
         # Always use OCLGring as oracle
         oracle = self.get_oracle_result(self.test_case, self.timeout)
 
+        # print("Hugues: oracle is done, and it is :")
+        # print(oracle)
+
         if oracle is None:
             raise base.InvalidTestCaseError("oracle")
+
+        # print("Hugues: start run ppcg host")
 
         proc = self._run_ppcg_host(self.test_case, self.platform, self.device, self.timeout)
 
@@ -80,15 +89,25 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
         # if proc.stdout != oracle.stdout:
         #     print("HUGUES: different stdout")
 
+        # # As oclgrind may emit some warning in stderr, remove all lines before "==BEGIN DUMP_ARRAYS=="
+        # err_content = oracle.stderr.split("\n")
+        # oracle_processed = ""
+        # keepline = False
+        # for l in err_content:
+        #     if "==BEGIN DUMP_ARRAYS==" in l:
+        #         keepline = True
+        #     if keepline:
+        #         oracle_processed += l + "\n"
+
         # Compare using numdiff
         with open("oracle.stderr", 'w') as f:
-            # postprocess polybench output to remove lines emitted by oclgrind
             oracle_processed = "\n".join(list(itertools.dropwhile(lambda s : s != "==BEGIN DUMP_ARRAYS==", oracle.stderr.split("\n"))))
             f.write(oracle_processed)
             #f.write(oracle.stderr)
 
         with open("proc.stderr", 'w') as f:
-            f.write(proc.stderr)
+            proc_processed = "\n".join(list(itertools.dropwhile(lambda s : s != "==BEGIN DUMP_ARRAYS==", proc.stderr.split("\n"))))
+            f.write(proc_processed)
 
         numdiff = os.getenv("NUMDIFF", "numdiff")
 
@@ -108,8 +127,35 @@ class PPCGInterestingnessTest(ppcg_opencl.OpenCLInterestingnessTest):
             print("FIXME: subprocess error with numdiff")
             return False
 
+        #-----
+        #huglog = "HUG ##################################################\n"
+        #if proc.stdout != oracle.stdout:
+        #    huglog += "HUG: interesting: proc.stdout != oracle.stdout\n"
+        #    huglog += "HUG: proc.stdout:\n"
+        #    huglog += proc.stdout
+        #    huglog += "HUG: oracle.stdout:\n"
+        #    huglog += oracle.stdout
+        #elif numdiff_ret.returncode != 0:
+        #    huglog += "HUG: interesting: numdiff_ret.returncode != 0\n"
+        #    huglog += "HUG: first lines of oracle.stderr:\n"
+        #    with open("oracle.stderr", "r") as f:
+        #        content = f.readlines()
+        #        for i in range(min(8, len(content))):
+        #            huglog += content[i]
+        #    huglog += "HUG: first lines of proc.stderr:\n"
+        #    with open("proc.stderr", "r") as f:
+        #        content = f.readlines()
+        #        for i in range(min(8, len(content))):
+        #            huglog += content[i]
+        #else:
+        #    huglog += "HUG: not interesting\n"
+        #with open('/data/hevrard/debug_pocl/hugues_reduce/ongoing.log', 'a') as f:
+        #    f.write(huglog)
+        #-----
+
         # Compare proc and oracle output
         return (proc.stdout != oracle.stdout) or (numdiff_ret.returncode != 0)
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

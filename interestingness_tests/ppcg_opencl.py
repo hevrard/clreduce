@@ -107,6 +107,9 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
         myenv["OPENCL_TARGET_DEVICE"] = ""
         myenv["PATH"] += ":" + self.host_exec_dir
 
+        # print("HUGUES: env path")
+        # print(myenv['PATH'])
+
         try:
             return subprocess.run(cmd, env=myenv, universal_newlines=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -235,6 +238,9 @@ class OpenCLInterestingnessTest(base.InterestingnessTest):
 
     def get_oracle_result(self, test_case, timeout):
         proc_opt = self._run_oclgrind(test_case, timeout)
+
+        # print("Hugues: proc_opt is")
+        # print(proc_opt)
 
         if proc_opt is None or proc_opt.returncode != 0:
             return None
